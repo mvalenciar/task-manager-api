@@ -1,0 +1,17 @@
+# Dependencias
+node_modules
+.pnpm-store/
+
+# variables de entorno
+.env
+.env.local
+
+/generated/prisma
+
+# BASE DE DATOS
+dev.db
+dev.db-journal
+
+# Carpetas de compilación o producción
+dist/
+.next/
