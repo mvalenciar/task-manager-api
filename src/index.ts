@@ -3,6 +3,9 @@ import express from "express";
 import "dotenv/config";
 import process from "node:process";
 
+// Activar la conexión con Prisma
+import "./db/client.ts";
+
 const app = express();
 // Se usara por defecto el puerto 4000 o el que se especifique en el archivo .env
 const PORT = process.env.PORT || 4000;
