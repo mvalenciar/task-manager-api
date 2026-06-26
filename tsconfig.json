@@ -1,12 +1,13 @@
 {
-    "compilerOptions": {
-      "target": "ES2022",
-      "module": "NodeNext",
-      "moduleResolution": "NodeNext",
-      "esModuleInterop": true,
-      "strict": true,
-      "skipLibCheck": true
-    },
-    "include": ["prisma.config.ts", "src/**/*"]
-  }
-  
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"esModuleInterop": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"allowImportingTsExtensions": true,
+		"noEmit": true
+	},
+	"include": ["prisma.config.ts", "src/**/*"]
+}

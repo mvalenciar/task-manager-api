@@ -5,6 +5,7 @@ import process from "node:process";
 
 // Activar la conexión con Prisma
 import "./db/client.ts";
+import { userRouter } from "./routes/user.routes.ts";
 
 const app = express();
 // Se usara por defecto el puerto 4000 o el que se especifique en el archivo .env
@@ -20,6 +21,9 @@ app.use(express.json());
 app.get("/api/health", (_, res) => {
 	res.json({ status: "ok", message: "API is running" });
 });
+
+// Manejador de registro de usuario
+app.use("/api/users", userRouter);
 
 // Manejador de rutas no encontradas
 app.use((_, res) => {

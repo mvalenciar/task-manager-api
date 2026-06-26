@@ -19,6 +19,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@prisma/adapter-better-sqlite3": "^7.8.0",
 		"@prisma/client": "^7.8.0",
 		"cors": "^2.8.6",
 		"dotenv": "^17.4.2",

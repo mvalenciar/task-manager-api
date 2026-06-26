@@ -23,6 +23,30 @@ export async function registerUser(req: Request, res: Response) {
 				.json({ error: "Este correo electrónico ya está registrado." });
 		}
 
-		// 3. Crear el nuevo usuario en la base de datos SQLite
-	} catch (error) {}
+		// 3. Insertar el nuevo usuario en la base de datos
+		const new_user = await prisma.user.create({
+			data: {
+				email,
+				password,
+			},
+			// Seguridad: Seleccionamos solo campos públicos para no devolver la contraseña en el JSON
+			select: {
+				id: true,
+				email: true,
+				createdAt: true,
+			},
+		});
+
+		// 4. Responder con éxito absoluto (Código 201: Creado)
+		res.status(201).json({
+			message: "¡Usuario registrado con éxito en la base de datos!",
+			user: new_user,
+		});
+		//
+	} catch (error) {
+		console.log("❌ Error grave en registrarUsuario:", error);
+		res.status(500).json({
+			error: "Hubo un error interno en el servidor al procesar el registro.",
+		});
+	}
 }
