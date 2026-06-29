@@ -5,6 +5,9 @@ import process from "node:process";
 
 // Activar la conexión con Prisma
 import "./db/client.ts";
+
+//Rutas
+import { taskRouter } from "./routes/task.routes.ts";
 import { userRouter } from "./routes/user.routes.ts";
 
 const app = express();
@@ -24,6 +27,9 @@ app.get("/api/health", (_, res) => {
 
 // Manejador de registro de usuario
 app.use("/api/users", userRouter);
+
+// Manejador de tareas
+app.use("/api/tasks", taskRouter);
 
 // Manejador de rutas no encontradas
 app.use((_, res) => {

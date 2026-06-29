@@ -2,11 +2,6 @@ import process from "node:process";
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-// Interfaz para extender la Request de express de forma local
-export interface AuthenticatedRequest extends Request {
-	userId?: number;
-}
-
 export function requireAuthentication(
 	req: Request,
 	res: Response,

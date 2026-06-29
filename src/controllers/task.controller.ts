@@ -40,3 +40,24 @@ export async function createTask(req: Request, res: Response) {
 			.json({ error: "Hubo un error interno al intentar crear la tarea." });
 	}
 }
+
+export async function getAllTasks(req: Request, res: Response) {
+	try {
+		const userId = req.userId;
+
+		const allTasks = await prisma.task.findMany({
+			where: {
+				userId: userId,
+			},
+		});
+
+		return res
+			.status(200)
+			.json({ message: "✅ Tareas obtenidas con éxito!", tasks: allTasks });
+	} catch (error) {
+		console.error(error);
+		return res
+			.status(500)
+			.json({ error: "❌ Error grave al obtener las tareas." });
+	}
+}
