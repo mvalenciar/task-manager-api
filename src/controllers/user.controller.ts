@@ -55,3 +55,51 @@ export async function registerUser(req: Request, res: Response) {
 		});
 	}
 }
+
+export async function loginUser(req: Request, res: Response) {
+	try {
+		const { email, password } = req.body;
+
+		//1. Validar campos obligatorios
+		if (!email || !password) {
+			return res
+				.status(400)
+				.json({ error: "El correo y la contraseña son obligatorios." });
+		}
+
+		//2. Verificar si existe el usuario
+		const user = await prisma.user.findUnique({
+			where: { email },
+		});
+
+		//3. Mensaje de error si el usuario no existe
+		if (!user) {
+			return res.status(401).json({ error: "Email o contraseña incorrectos." });
+		}
+
+		//4. Comparamos la clave limpia con el hash de la base de datos
+		const isPasswordCorrect = await bycrypt.compare(password, user.password);
+
+		if (!isPasswordCorrect) {
+			return res.status(401).json({ error: "Email o contraseña incorrectos." });
+		}
+
+		//5. Éxito absoluto
+		res.status(200).json({
+			message: "¡Usuario autenticado con éxito!",
+			user: {
+				id: user.id,
+				email: user.email,
+				createdAt: user.createdAt,
+			},
+		});
+	} catch (error) {
+		console.error("❌ Error grave en iniciarSesion:", error);
+		res
+			.status(500)
+			.json({
+				error:
+					"Hubo un error interno en el servidor al intentar iniciar sesión.",
+			});
+	}
+}
