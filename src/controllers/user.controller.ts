@@ -1,3 +1,4 @@
+import bycrypt from "bcrypt";
 import type { Request, Response } from "express";
 import { prisma } from "../db/client.ts";
 
@@ -23,11 +24,15 @@ export async function registerUser(req: Request, res: Response) {
 				.json({ error: "Este correo electrónico ya está registrado." });
 		}
 
-		// 3. Insertar el nuevo usuario en la base de datos
+		// 2.1 Encreiptación de la contraseña
+		const saltRounds = 10;
+		const hashedPassword = await bycrypt.hash(password, saltRounds);
+
+		// 3. Insertar el nuevo usuario usando la contraseña encriptada en la base de datos
 		const new_user = await prisma.user.create({
 			data: {
 				email,
-				password,
+				password: hashedPassword,
 			},
 			// Seguridad: Seleccionamos solo campos públicos para no devolver la contraseña en el JSON
 			select: {
