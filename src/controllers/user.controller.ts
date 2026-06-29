@@ -1,6 +1,7 @@
 import bycrypt from "bcrypt";
-import type { Request, Response } from "express";
+import Jwt from "jsonwebtoken";
 import { prisma } from "../db/client.ts";
+import type { Request, Response } from "express";
 
 export async function registerUser(req: Request, res: Response) {
 	try {
@@ -84,9 +85,15 @@ export async function loginUser(req: Request, res: Response) {
 			return res.status(401).json({ error: "Email o contraseña incorrectos." });
 		}
 
+		//4.1 Creación del token
+		const payload = { userID: user.id };
+		const secretKey = process.env.SECRET_KEY || "clave_por_defecto_segura";
+		const token = await Jwt.sign(payload, secretKey, { expiresIn: "24h" });
+
 		//5. Éxito absoluto
 		res.status(200).json({
 			message: "¡Usuario autenticado con éxito!",
+			token,
 			user: {
 				id: user.id,
 				email: user.email,
@@ -95,11 +102,8 @@ export async function loginUser(req: Request, res: Response) {
 		});
 	} catch (error) {
 		console.error("❌ Error grave en iniciarSesion:", error);
-		res
-			.status(500)
-			.json({
-				error:
-					"Hubo un error interno en el servidor al intentar iniciar sesión.",
-			});
+		res.status(500).json({
+			error: "Hubo un error interno en el servidor al intentar iniciar sesión.",
+		});
 	}
 }
