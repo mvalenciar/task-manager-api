@@ -96,3 +96,37 @@ export async function updateTask(req: Request, res: Response) {
 			.json({ error: "❌ Error grave al actualizar la tarea." });
 	}
 }
+
+export async function deleteTask(req: Request, res: Response) {
+	try {
+		//1. Extraer el id de la petición
+		const taskId = Number(req.params.id);
+
+		//2. validar que existe la tarea con el id de la petición
+		const existingTask = await prisma.task.findUnique({
+			where: {
+				id: taskId,
+			},
+		});
+
+		if (!existingTask) {
+			return res.status(404).json({ error: "❌ Tarea no encontrada." });
+		}
+
+		//3. Eliminar la tarea
+		const deleteTask = await prisma.task.delete({
+			where: {
+				id: taskId,
+			},
+		});
+		res.status(200).json({
+			message: "✅ Tarea eliminada con éxito!",
+			task: deleteTask,
+		});
+	} catch (error) {
+		console.error(error);
+		return res
+			.status(500)
+			.json({ error: "❌ Error grave al eliminar la tarea." });
+	}
+}

@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
 	createTask,
+	deleteTask,
 	getAllTasks,
 	updateTask,
 } from "../controllers/task.controller.ts";
@@ -14,3 +15,5 @@ taskRouter.get("/", requireAuthentication, getAllTasks);
 taskRouter.post("/", requireAuthentication, createTask);
 
 taskRouter.put("/:id", requireAuthentication, updateTask);
+
+taskRouter.delete("/:id", requireAuthentication, deleteTask);
