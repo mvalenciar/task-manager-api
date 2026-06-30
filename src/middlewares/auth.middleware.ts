@@ -20,7 +20,7 @@ export function requireAuthentication(
 		const token = authHeader.split("Bearer ")[1];
 
 		// 3. verificar el token
-		const secretKey = process.env.SECRET_KEY || "clave_por_defecto_segura";
+		const secretKey = process.env.JWT_SECRET || "clave_por_defecto_segura";
 
 		// jwt.verify descigrar el token
 		const decoded = jwt.verify(token, secretKey) as { userId: number };

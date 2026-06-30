@@ -86,9 +86,9 @@ export async function loginUser(req: Request, res: Response) {
 		}
 
 		//4.1 Creación del token
-		const payload = { userID: user.id };
-		const secretKey = process.env.SECRET_KEY || "clave_por_defecto_segura";
-		const token = await Jwt.sign(payload, secretKey, { expiresIn: "24h" });
+		const payload = { userId: user.id };
+		const secretKey = process.env.JWT_SECRET || "clave_por_defecto_segura";
+		const token = Jwt.sign(payload, secretKey, { expiresIn: "24h" });
 
 		//5. Éxito absoluto
 		res.status(200).json({
