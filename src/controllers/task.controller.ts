@@ -5,7 +5,7 @@ export async function createTask(req: Request, res: Response) {
 	try {
 		const { title, description } = req.body;
 
-		//Leemos el userId que inyecto el middelwawre
+		//Leemos el userId que inyecto el middleware
 		const userId = req.userId;
 
 		if (!title) {
@@ -59,5 +59,40 @@ export async function getAllTasks(req: Request, res: Response) {
 		return res
 			.status(500)
 			.json({ error: "❌ Error grave al obtener las tareas." });
+	}
+}
+
+export async function updateTask(req: Request, res: Response) {
+	try {
+		//1. Extraer el id de la petición
+		const taskId = Number(req.params.id);
+		//2. Extraer los parámetros de la petición
+		const { title, description } = req.body;
+
+		//3. validar que existe la tarea con el id de la petición
+		const existingTask = await prisma.task.findUnique({
+			where: { id: taskId },
+		});
+
+		if (!existingTask) {
+			return res.status(404).json({ error: "❌ Tarea no encontrada." });
+		}
+
+		// 4. Actualizar la tarea con los nuevos datos
+		const updateTask = await prisma.task.update({
+			where: { id: taskId },
+			data: { title, description },
+		});
+
+		// 5. Responder con éxito absoluto
+		res.status(200).json({
+			message: "✅ Tarea actualizada con éxito!",
+			task: updateTask,
+		});
+	} catch (error) {
+		console.error(error);
+		return res
+			.status(500)
+			.json({ error: "❌ Error grave al actualizar la tarea." });
 	}
 }

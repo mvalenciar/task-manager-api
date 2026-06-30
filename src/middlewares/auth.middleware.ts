@@ -13,7 +13,7 @@ export function requireAuthentication(
 		if (!authHeader?.startsWith("Bearer ")) {
 			return res
 				.status(401)
-				.json({ error: "🔒 Acceso denegado. Token ausente o malformado." });
+				.json({ error: "🔒 Acceso denegado. Token ausente o mal formado." });
 		}
 
 		// 2. Extraer el token del header
@@ -22,7 +22,7 @@ export function requireAuthentication(
 		// 3. verificar el token
 		const secretKey = process.env.JWT_SECRET || "clave_por_defecto_segura";
 
-		// jwt.verify descigrar el token
+		// jwt.verify descifrar el token
 		const decoded = jwt.verify(token, secretKey) as { userId: number };
 
 		// 4. Inyectar el userId descifrado en la petición

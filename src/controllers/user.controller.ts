@@ -1,7 +1,7 @@
 import bycrypt from "bcrypt";
+import type { Request, Response } from "express";
 import Jwt from "jsonwebtoken";
 import { prisma } from "../db/client.ts";
-import type { Request, Response } from "express";
 
 export async function registerUser(req: Request, res: Response) {
 	try {
@@ -25,7 +25,7 @@ export async function registerUser(req: Request, res: Response) {
 				.json({ error: "Este correo electrónico ya está registrado." });
 		}
 
-		// 2.1 Encreiptación de la contraseña
+		// 2.1 Encriptación  de la contraseña
 		const saltRounds = 10;
 		const hashedPassword = await bycrypt.hash(password, saltRounds);
 
@@ -101,7 +101,7 @@ export async function loginUser(req: Request, res: Response) {
 			},
 		});
 	} catch (error) {
-		console.error("❌ Error grave en iniciarSesion:", error);
+		console.error("❌ Error grave en iniciar sesión:", error);
 		res.status(500).json({
 			error: "Hubo un error interno en el servidor al intentar iniciar sesión.",
 		});
