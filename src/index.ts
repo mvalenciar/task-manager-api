@@ -10,7 +10,7 @@ import "./db/client.ts";
 import { taskRouter } from "./routes/task.routes.ts";
 import { userRouter } from "./routes/user.routes.ts";
 
-const app = express();
+export const app = express();
 // Se usara por defecto el puerto 4000 o el que se especifique en el archivo .env
 const PORT = process.env.PORT || 4000;
 
