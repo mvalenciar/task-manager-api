@@ -1,6 +1,6 @@
 import assert from "node:assert";
-import { describe, test } from "node:test";
 import request from "supertest";
+import { describe, test } from "vitest"; // 👈 🔄 Cambiado de "node:test" a "vitest"
 import { app } from "../index.ts";
 
 describe("🛡️ Pruebas del Módulo de Salud (Health)", () => {
