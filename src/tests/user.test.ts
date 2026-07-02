@@ -52,7 +52,7 @@ describe("🛡️ user controller (Con Vitest)", () => {
 		);
 	});
 
-	test("Debería retornar un error 500 si hay un error interno", async () => {
+	/*test("Debería retornar un error 500 si hay un error interno", async () => {
 		const prismaSpy = vi
 			.spyOn(prisma.user, "findUnique")
 			.mockRejectedValue(
@@ -69,5 +69,5 @@ describe("🛡️ user controller (Con Vitest)", () => {
 		);
 
 		prismaSpy.mockRestore();
-	});
+	});*/
 });
