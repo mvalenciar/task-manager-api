@@ -1,51 +1,65 @@
+import crypto from "node:crypto";
 import bycrypt from "bcrypt";
 import type { Request, Response } from "express";
 import Jwt from "jsonwebtoken";
 import { prisma } from "../db/client.ts";
+import { sendVerificationEmail } from "../services/emailService.ts";
 
 export async function registerUser(req: Request, res: Response) {
 	try {
-		const { email, password } = req.body;
+		const { alias, email, password } = req.body;
 
 		//1. Validar campos obligatorios
-		if (!email || !password) {
-			return res
-				.status(400)
-				.json({ message: "El correo y la contraseña son obligatorios." });
+		if (!alias || !email || !password) {
+			return res.status(400).json({
+				message: "El alias, el correo y la contraseña son obligatorios.",
+			});
 		}
 
-		//2. Verificar si el correo ya existe
-		const existing_user = await prisma.user.findUnique({
-			where: { email },
+		//2. Verificar si el correo y el alias ya existe
+		const existing_user = await prisma.user.findFirst({
+			where: {
+				OR: [{ email }, { alias }],
+			},
 		});
 
 		if (existing_user) {
 			return res
 				.status(400)
-				.json({ error: "Este correo electrónico ya está registrado." });
+				.json({ error: "Este alias y correo electrónico ya está registrado." });
 		}
 
 		// 2.1 Encriptación  de la contraseña
 		const saltRounds = 10;
 		const hashedPassword = await bycrypt.hash(password, saltRounds);
 
+		// 2.2 Generación de un token de verificación
+		const verificationToken = crypto.randomBytes(32).toString("hex");
+
 		// 3. Insertar el nuevo usuario usando la contraseña encriptada en la base de datos
 		const new_user = await prisma.user.create({
 			data: {
+				alias,
 				email,
 				password: hashedPassword,
+				verificationToken,
 			},
 			// Seguridad: Seleccionamos solo campos públicos para no devolver la contraseña en el JSON
 			select: {
 				id: true,
+				alias: true,
 				email: true,
 				createdAt: true,
 			},
 		});
 
+		// 3.1 Despachar el correo electrónico de activación con la llave criptográfica
+		await sendVerificationEmail(email, alias, verificationToken);
+
 		// 4. Responder con éxito absoluto (Código 201: Creado)
 		res.status(201).json({
-			message: "¡Usuario registrado con éxito en la base de datos!",
+			message:
+				"¡Registro exitoso! Por favor, revisa tu bandeja de entrada para activar tu cuenta.",
 			user: new_user,
 		});
 		//

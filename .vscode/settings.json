@@ -1,3 +1,11 @@
 {
-	"cSpell.language": "en,es-ES"
+	"cSpell.language": "en,es-ES",
+	"cSpell.words": [
+		"autoincrement",
+		"bycrypt",
+		"datasource",
+		"Encriptación",
+		"mailtrap",
+		"sqlite"
+	]
 }

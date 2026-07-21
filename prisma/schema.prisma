@@ -8,11 +8,16 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  tasks     Task[]
+  id                   Int      @id @default(autoincrement())
+  alias                String   @unique
+  email                String   @unique
+  password             String
+  isVerified           Boolean  @default(false)
+  verificationToken    String?
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  createdAt            DateTime @default(now())
+  tasks                Task[]
 }
 
 model Task {

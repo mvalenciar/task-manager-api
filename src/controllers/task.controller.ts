@@ -49,6 +49,9 @@ export async function getAllTasks(req: Request, res: Response) {
 			where: {
 				userId: userId,
 			},
+			orderBy:{
+				createdAt:'desc'
+			}
 		});
 
 		return res
@@ -67,7 +70,7 @@ export async function updateTask(req: Request, res: Response) {
 		//1. Extraer el id de la petición
 		const taskId = Number(req.params.id);
 		//2. Extraer los parámetros de la petición
-		const { title, description } = req.body;
+		const { title, description, completed } = req.body;
 
 		//3. validar que existe la tarea con el id de la petición
 		const existingTask = await prisma.task.findUnique({
@@ -81,7 +84,11 @@ export async function updateTask(req: Request, res: Response) {
 		// 4. Actualizar la tarea con los nuevos datos
 		const updateTask = await prisma.task.update({
 			where: { id: taskId },
-			data: { title, description },
+			data: { 
+				title: title !== undefined ? title : existingTask.title, 
+				description: description !== undefined ? description : existingTask.description, 
+				completed: completed !== undefined ? completed : existingTask.completed
+			},
 		});
 
 		// 5. Responder con éxito absoluto
