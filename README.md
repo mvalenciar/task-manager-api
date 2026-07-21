@@ -10,6 +10,8 @@ API REST robusta y escalable para la gestión de flujos de trabajo y tareas pers
 - **ORM de Nueva Generación:** Prisma v7 (con adaptadores nativos de alto rendimiento)
 - **Seguridad y Ciberseguridad:** Bcrypt (hashing de contraseñas) y JSON Web Tokens (JWT)
 - **Calidad de Código y Linters:** Biome (organización de imports y buenas prácticas modernas)
+- **Servicio de Mensajería:** Nodemailer (Despacho de correos electrónicos SMTP asíncronos en desarrollo y producción)
+- **Criptografía:** node:crypto nativo para la generación de hashes hexadecimales aleatorios de un solo uso
 
 ## 🏗️ Arquitectura del Proyecto
 
@@ -23,10 +25,12 @@ El proyecto implementa un patrón de diseño desacoplado y modular organizado po
 
 ## 🛡️ Características Principales
 
-1. **Autenticación Segura:** Registro de usuarios con encriptación de contraseñas mediante hashing criptográfico (Bcrypt con 10 salt rounds).
-2. **Control de Sesiones Inalterable:** Implementación de flujos de login protegidos que emiten tokens de acceso JWT con expiración temporal de 24 horas.
-3. **Persistencia Relacional:** Conexión estricta Uno a Muchos (Un usuario -> Múltiples tareas) protegida mediante integridad referencial y eliminación en cascada en la base de datos.
-4. **Gestión Rigurosa de Errores:** Control semántico de respuestas basado en la especificación formal de códigos de estado HTTP (200, 201, 400, 401, 404, 500).
+1. **Autenticación y Registro Defensivo:** Registro de usuarios mediante identidades digitales exclusivas (alias String @unique) combinando hashing criptográfico con Bcrypt (10 salt rounds).
+2. **Perímetro de Verificación de Identidad (Email Validation):** Generación automática de tokens criptográficos aleatorios de un solo uso vinculados a la base de datos [Example 5]. El sistema bloquea el ingreso de cuentas nuevas emitiendo un estado 403 Forbidden en el Login hasta que el usuario confirme su correo electrónico haciendo clic en el enlace asíncrono seguro.
+3. **Control de Sesiones Inalterable:** Implementación de flujos de login protegidos que emiten tokens de acceso JWT con expiración temporal de 24 horas.
+4. **Persistencia Relacional:** Conexión estricta Uno a Muchos (Un usuario -> Múltiples tareas) protegida mediante integridad referencial y eliminación en cascada en la base de datos.
+5. **Gestión Rigurosa de Errores:** Control semántico de respuestas basado en la especificación formal de códigos de estado HTTP (200, 201, 400, 401, 404, 500).
+
 
 ## 🧪 Suites de Pruebas Automatizadas (Testing)
 

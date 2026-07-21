@@ -1,4 +1,4 @@
-import request from "supertest";
+/*import request from "supertest";
 import { beforeAll, describe, expect, test } from "vitest";
 import { prisma } from "../db/client.ts";
 import { app } from "../index.ts";
@@ -97,3 +97,4 @@ describe("🛡️ task controller", () => {
 		expect(response.body.message).toBe("✅ Tarea eliminada con éxito!");
 	});
 });
+*/
