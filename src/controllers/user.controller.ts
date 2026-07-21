@@ -71,6 +71,51 @@ export async function registerUser(req: Request, res: Response) {
 	}
 }
 
+export async function verifyEmail(req: Request, res: Response) {
+	try {
+		// 1. Capturamos el token de la URL (Query Params)
+		const { token } = req.query;
+
+		if (!token) {
+			return res
+				.status(400)
+				.json({ error: "El token de verificación es obligatorio." });
+		}
+
+		//2. Verificar si el token existe en la base de datos
+		const user = await prisma.user.findFirst({
+			where: { verificationToken: String(token) },
+		});
+		// 3. Si el token es falso o ya ha expirado, bloqueamos el acceso
+		if (!user) {
+			return res
+				.status(400)
+				.json({ error: "El token es inválido o ya ha expirado." });
+		}
+
+		//4. Actualizamos la columna de verificación en la base de datos
+		await prisma.user.update({
+			where: { id: user.id },
+			data: {
+				isVerified: true,
+				verificationToken: null,
+			},
+		});
+
+		//5. Responder con éxito absoluto (Código 200: OK)
+		res.status(200).json({
+			message:
+				"¡Cuenta activada con éxito! Ya puedes iniciar sesión de forma segura.",
+		});
+	} catch (error) {
+		console.error("❌ Error grave en verifyEmail:", error);
+		res.status(500).json({
+			error:
+				"Hubo un error interno en el servidor al intentar verificar el correo.",
+		});
+	}
+}
+
 export async function loginUser(req: Request, res: Response) {
 	try {
 		const { email, password } = req.body;
@@ -90,6 +135,14 @@ export async function loginUser(req: Request, res: Response) {
 		//3. Mensaje de error si el usuario no existe
 		if (!user) {
 			return res.status(401).json({ error: "Email o contraseña incorrectos." });
+		}
+
+		// 3.1 Candado de Ciberseguridad: Bloquear usuarios que no han verificado su correo electrónico
+		if (!user.isVerified) {
+			return res.status(403).json({
+				error:
+					"Tu cuenta aún no ha sido activada. Por favor, verifica tu correo electrónico antes de ingresar.",
+			});
 		}
 
 		//4. Comparamos la clave limpia con el hash de la base de datos
