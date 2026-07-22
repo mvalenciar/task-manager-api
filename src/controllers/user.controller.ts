@@ -64,7 +64,7 @@ export async function registerUser(req: Request, res: Response) {
 		});
 		//
 	} catch (error) {
-		console.log("❌ Error grave en registrarUsuario:", error);
+		console.error("❌ Error grave en registrarUsuario:", error);
 		res.status(500).json({
 			error: "Hubo un error interno en el servidor al procesar el registro.",
 		});
