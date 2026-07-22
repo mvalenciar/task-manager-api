@@ -1,66 +1,20 @@
-import request from "supertest";
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import { prisma } from "../db/client.ts";
-import { app } from "../index.ts";
-
-const mockAlias = "test_alias";
-const mockEmail = "test@test.com";
-const mockPassword = "test_password";
+import {
+	mockAlias,
+	mockEmail,
+	mockPassword,
+	mockResponseLogin,
+	mockResponseRegister,
+	mockVerifyEmail,
+	spyConsoleError,
+	spyLogin,
+	spyRegister,
+} from "./helpers/user-test.helpers.ts";
 
 vi.mock("../services/emailService.ts", () => ({
 	sendVerificationEmail: vi.fn().mockResolvedValue(true),
 }));
-
-const spyRegister = () => {
-	const prismaSpy = vi
-		.spyOn(prisma.user, "findFirst")
-		.mockRejectedValue(new Error("Error en la base de datos"));
-
-	return prismaSpy;
-};
-
-const spyLogin = () => {
-	const prismaSpy = vi
-		.spyOn(prisma.user, "findUnique")
-		.mockRejectedValue(new Error("Error en la base de datos"));
-
-	return prismaSpy;
-};
-
-const spyConsoleError = () => {
-	const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-	return consoleSpy;
-};
-
-const mockVerifyEmail = async () => {
-	await prisma.user.update({
-		where: { email: mockEmail },
-		data: { isVerified: true },
-	});
-};
-
-const mockResponseRegister = async (
-	alias: string | null = null,
-	email: string | null = null,
-	password: string | null = null,
-) => {
-	return await request(app).post("/api/users/register").send({
-		alias,
-		email,
-		password,
-	});
-};
-
-const mockResponseLogin = async (
-	email: string | null = null,
-	password: string | null = null,
-) => {
-	return await request(app).post("/api/users/login").send({
-		email,
-		password,
-	});
-};
 
 describe("🛡️ User Controller Integration Tests", () => {
 	beforeAll(async () => {
