@@ -34,7 +34,7 @@ export async function createTask(req: Request, res: Response) {
 			task: newTask,
 		});
 	} catch (error) {
-		console.error("❌ Error grave en crearTarea:", error);
+		console.error("❌ Error grave en crear Tarea:", error);
 		res
 			.status(500)
 			.json({ error: "Hubo un error interno al intentar crear la tarea." });
@@ -49,9 +49,9 @@ export async function getAllTasks(req: Request, res: Response) {
 			where: {
 				userId: userId,
 			},
-			orderBy:{
-				createdAt:'desc'
-			}
+			orderBy: {
+				createdAt: "desc",
+			},
 		});
 
 		return res
@@ -84,10 +84,11 @@ export async function updateTask(req: Request, res: Response) {
 		// 4. Actualizar la tarea con los nuevos datos
 		const updateTask = await prisma.task.update({
 			where: { id: taskId },
-			data: { 
-				title: title !== undefined ? title : existingTask.title, 
-				description: description !== undefined ? description : existingTask.description, 
-				completed: completed !== undefined ? completed : existingTask.completed
+			data: {
+				title: title !== undefined ? title : existingTask.title,
+				description:
+					description !== undefined ? description : existingTask.description,
+				completed: completed !== undefined ? completed : existingTask.completed,
 			},
 		});
 

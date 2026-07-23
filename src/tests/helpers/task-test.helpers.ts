@@ -1,13 +1,11 @@
 import request from "supertest";
 import { prisma } from "../../db/client.ts";
 import { app } from "../../index.ts";
-import {
-	mockAlias,
-	mockEmail,
-	mockPassword,
-	mockResponseRegister,
-	mockVerifyEmail,
-} from "./user-test.helpers.ts";
+import { vi } from "vitest";
+
+export const mockTaskAlias = "alias_task";
+export const mockTaskEmail = "task@test.com";
+export const mockTaskPassword = "task_password";
 
 export const mockTask = {
 	title: "Task_1",
@@ -15,38 +13,72 @@ export const mockTask = {
 };
 
 export const setupTaskTests = async () => {
-	try {
-		// Limpiamos las tablas para empezar desde cero
-		await prisma.task.deleteMany({});
-		await prisma.user.deleteMany({});
+	await prisma.user.deleteMany();
+	await prisma.task.deleteMany();
 
-		// 2. Registramos al dueño de las tareas de forma fantasma
-		await mockResponseRegister(mockAlias, mockEmail, mockPassword);
-		await mockVerifyEmail();
+	await request(app).post("/api/users/register").send({
+		alias: mockTaskAlias,
+		email: mockTaskEmail,
+		password: mockTaskPassword,
+	});
 
-		// 3. Hacemos el Login para que el servidor nos devuelva el JWT real
-		const loginRes = await request(app).post("/api/users/login").send({
-			email: mockEmail,
-			password: mockPassword,
-		});
+	await prisma.user.update({
+		where: { email: mockTaskEmail },
+		data: {
+			isVerified: true,
+			verificationToken: null,
+		},
+	});
 
-		// 4. 🎯 Guardamos el token emitido en nuestra variable global
-		return loginRes.body.token;
-	} catch (error) {
-		console.error("Error configurando el entorno de tareas:", error);
-	}
+	const loginResponse = await request(app).post("/api/users/login").send({
+		email: mockTaskEmail,
+		password: mockTaskPassword,
+	});
+
+	return loginResponse.body.token;
+};
+
+export const mockSpyConsoleError = () => {
+	const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+	return consoleSpy;
 };
 
 export const mockResponseCreateTask = async (
-	title: string,
-	description: string,
-	tokenValid: string,
+	title: string | null,
+	description: string | null,
+	validToken: string,
 ) => {
 	return await request(app)
 		.post("/api/tasks")
-		.set("Authorization", `Bearer ${tokenValid}`)
+		.set("Authorization", `Bearer ${validToken}`)
 		.send({
 			title,
 			description,
 		});
+};
+
+export const mockResponseGetAllTasks = async (validToken: string) => {
+	return await request(app)
+		.get("/api/tasks")
+		.set("Authorization", `Bearer ${validToken}`);
+};
+
+export const mockResponseUpdateTask = async (
+	taskId: number,
+	validToken: string,
+	body: { title?: string; description?: string; completed?: boolean },
+) => {
+	return await request(app)
+		.put(`/api/tasks/${taskId}`)
+		.set("Authorization", `Bearer ${validToken}`)
+		.send(body);
+};
+
+export const mockResponseDeleteTask = async (
+	taskId: number,
+	validToken: string,
+) => {
+	return await request(app)
+		.delete(`/api/tasks/${taskId}`)
+		.set("Authorization", `Bearer ${validToken}`);
 };
