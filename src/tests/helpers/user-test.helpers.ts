@@ -7,33 +7,40 @@ export const mockAlias = "test_alias";
 export const mockEmail = "test@test.com";
 export const mockPassword = "test_password";
 
+// Intercepta la creación real del usuario para forzar de forma limpia el error 500
 export const spyRegister = () => {
 	const prismaSpy = vi
-		.spyOn(prisma.user, "findFirst")
-		.mockRejectedValue(new Error("Error en la base de datos"));
+		.spyOn(prisma.user, "create")
+		.mockRejectedValue(new Error("Error forzado en la creación del usuario"));
 
 	return prismaSpy;
 };
 
+// Intercepta el inicio de sesión del usuario para forzar de forma limpia el error 500
 export const spyLogin = () => {
 	const prismaSpy = vi
 		.spyOn(prisma.user, "findUnique")
-		.mockRejectedValue(new Error("Error en la base de datos"));
+		.mockRejectedValue(new Error("Error forzado en inicio de sesión"));
 
 	return prismaSpy;
 };
 
+// Intercepta los errores de la consola para forzar de forma limpia el error 500
 export const spyConsoleError = () => {
 	const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
 	return consoleSpy;
 };
 
-export const mockVerifyEmail = async () => {
-	await prisma.user.update({
-		where: { email: mockEmail },
-		data: { isVerified: true },
-	});
+// Simulación petición http para verificación del email vía query params
+export const mockVerifyEmail = async (token?: string) => {
+	const req = request(app).get("/api/users/verify-email");
+
+	if (token !== undefined) {
+		return await req.query({ token });
+	}
+
+	return await req;
 };
 
 export const mockResponseRegister = async (

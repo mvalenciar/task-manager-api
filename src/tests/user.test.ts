@@ -21,6 +21,10 @@ describe("🛡️ User Controller Integration Tests", () => {
 		await prisma.user.deleteMany();
 	});
 
+	// ==========================================
+	// 1. REGISTRO DE USUARIOS (registerUser)
+	// ==========================================
+
 	test("should return 201 status and register the user successfully when valid data is provided", async () => {
 		const response = await mockResponseRegister(
 			mockAlias,
@@ -32,6 +36,8 @@ describe("🛡️ User Controller Integration Tests", () => {
 		expect(response.body.message).toBe(
 			"¡Registro exitoso! Por favor, revisa tu bandeja de entrada para activar tu cuenta.",
 		);
+		expect(response.body.user).toHaveProperty("id");
+		expect(response.body.user.password).toBe(undefined);
 	});
 
 	test("should return 400 status when trying to register an existing email or alias", async () => {
@@ -48,7 +54,7 @@ describe("🛡️ User Controller Integration Tests", () => {
 	});
 
 	test("should return 400 status when required fields are missing in registration", async () => {
-		const response = await mockResponseRegister(mockEmail, mockPassword);
+		const response = await mockResponseRegister("", mockEmail, mockPassword);
 
 		expect(response.status).toBe(400);
 		expect(response.body.message).toBe(
@@ -61,9 +67,9 @@ describe("🛡️ User Controller Integration Tests", () => {
 		const consoleSpy = spyConsoleError();
 
 		const response = await mockResponseRegister(
-			mockAlias,
-			mockEmail,
-			mockPassword,
+			"failUser",
+			"fail@test.com",
+			"password123",
 		);
 
 		expect(response.status).toBe(500);
@@ -75,7 +81,44 @@ describe("🛡️ User Controller Integration Tests", () => {
 		consoleSpy.mockRestore();
 	});
 
-	test("should reject login with 403 status when the email account is not verified yet", async () => {
+	// ==========================================
+	// 2. VERIFICACIÓN DE EMAIL (verifyEmail)
+	// ==========================================
+	test("should return 400 status if no token is provided in the query params", async () => {
+		const response = await mockVerifyEmail("");
+
+		expect(response.status).toBe(400);
+		expect(response.body.error).toBe(
+			"El token de verificación es obligatorio.",
+		);
+	});
+
+	test("should return 400 status if the verification token is invalid or expired", async () => {
+		const response = await mockVerifyEmail("invalidToken");
+		expect(response.status).toBe(400);
+		expect(response.body.error).toBe("El token es inválido o ya ha expirado.");
+	});
+
+	// ==========================================
+	// 3. AUTENTICACIÓN (loginUser)
+	// ==========================================
+	test("should return 400 status during login when email or password fields are missing", async () => {
+		const response = await mockResponseLogin("", "");
+
+		expect(response.status).toBe(400);
+		expect(response.body.error).toBe(
+			"El correo y la contraseña son obligatorios.",
+		);
+	});
+
+	test("should return 401 status when user credentials do not exist", async () => {
+		const response = await mockResponseLogin("noexit", "password123");
+
+		expect(response.status).toBe(401);
+		expect(response.body.error).toBe("Email o contraseña incorrectos.");
+	});
+
+	test("should return 403 status when trying to login with an unverified account", async () => {
 		const response = await mockResponseLogin(mockEmail, mockPassword);
 
 		expect(response.status).toBe(403);
@@ -84,29 +127,14 @@ describe("🛡️ User Controller Integration Tests", () => {
 		);
 	});
 
-	test("should login successfully and return a JWT token when the account is verified", async () => {
-		await mockVerifyEmail();
+	test("should return 401 status when password is incorrect", async () => {
+		const user = await prisma.user.findUnique({
+			where: {
+				email: mockEmail,
+			},
+		});
 
-		const response = await mockResponseLogin(mockEmail, mockPassword);
-
-		expect(response.status).toBe(200);
-		expect(response.body.token).toBeDefined();
-		expect(response.body.message).toBe("¡Usuario autenticado con éxito!");
-	});
-
-	test("should return 400 status when required fields are missing in login", async () => {
-		await mockVerifyEmail();
-
-		const response = await mockResponseLogin(mockEmail);
-
-		expect(response.status).toBe(400);
-		expect(response.body.error).toBe(
-			"El correo y la contraseña son obligatorios.",
-		);
-	});
-
-	test("should return 401 status when required field are incorrect in login", async () => {
-		await mockVerifyEmail();
+		await mockVerifyEmail(user?.verificationToken as string);
 
 		const response = await mockResponseLogin(mockEmail, "1234");
 
@@ -114,21 +142,29 @@ describe("🛡️ User Controller Integration Tests", () => {
 		expect(response.body.error).toBe("Email o contraseña incorrectos.");
 	});
 
-	test("should return 500 status when login process is fail", async () => {
-		const prismaSpy = spyLogin();
-
-		const consoleSpy = spyConsoleError();
-
-		await mockVerifyEmail();
-
+	test("should return 200 status and a valid JWT token when valid credentials are provided", async () => {
 		const response = await mockResponseLogin(mockEmail, mockPassword);
 
-		expect(response.status).toBe(500);
-		expect(response.body.error).toBe(
-			"Hubo un error interno en el servidor al intentar iniciar sesión.",
-		);
+		expect(response.status).toBe(200);
+		expect(response.body.message).toBe("¡Usuario autenticado con éxito!");
+		expect(response.body.user.email).toBe(mockEmail);
+		expect(response.body.token).toBeDefined();
+	});
 
-		prismaSpy.mockRestore();
-		consoleSpy.mockRestore();
+	test("should return 500 status when login process fails", async () => {
+		const prismaSpy = spyLogin();
+		const consoleSpy = spyConsoleError();
+
+		try {
+			const response = await mockResponseLogin(mockEmail, mockPassword);
+
+			expect(response.status).toBe(500);
+			expect(response.body.error).toBe(
+				"Hubo un error interno en el servidor al intentar iniciar sesión.",
+			);
+		} finally {
+			prismaSpy.mockRestore();
+			consoleSpy.mockRestore();
+		}
 	});
 });
