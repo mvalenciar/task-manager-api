@@ -2,12 +2,16 @@
 	"cSpell.language": "en,es-ES",
 	"cSpell.words": [
 		"autoincrement",
+		"autoincremento",
 		"bycrypt",
 		"Ciberseguridad",
 		"datasource",
 		"Encriptación",
+		"Inicialización",
 		"mailtrap",
+		"malformados",
 		"Manejador",
-		"sqlite"
+		"sqlite",
+		"tipado"
 	]
 }

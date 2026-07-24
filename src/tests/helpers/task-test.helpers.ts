@@ -1,7 +1,7 @@
 import request from "supertest";
+import { vi } from "vitest";
 import { prisma } from "../../db/client.ts";
 import { app } from "../../index.ts";
-import { vi } from "vitest";
 
 export const mockTaskAlias = "alias_task";
 export const mockTaskEmail = "task@test.com";

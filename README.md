@@ -11,7 +11,7 @@ API REST robusta y escalable para la gestión de flujos de trabajo y tareas pers
 - **Seguridad y Ciberseguridad:** Bcrypt (hashing de contraseñas) y JSON Web Tokens (JWT)
 - **Calidad de Código y Linters:** Biome (organización de imports y buenas prácticas modernas)
 - **Servicio de Mensajería:** Nodemailer (Despacho de correos electrónicos SMTP asíncronos en desarrollo y producción)
-- **Criptografía:** node:crypto nativo para la generación de hashes hexadecimales aleatorios de un solo uso
+- **Criptografía:** `node:crypto` nativo para la generación de hashes hexadecimales aleatorios de un solo uso
 
 ## 🏗️ Arquitectura del Proyecto
 
@@ -26,11 +26,10 @@ El proyecto implementa un patrón de diseño desacoplado y modular organizado po
 ## 🛡️ Características Principales
 
 1. **Autenticación y Registro Defensivo:** Registro de usuarios mediante identidades digitales exclusivas (alias String @unique) combinando hashing criptográfico con Bcrypt (10 salt rounds).
-2. **Perímetro de Verificación de Identidad (Email Validation):** Generación automática de tokens criptográficos aleatorios de un solo uso vinculados a la base de datos [Example 5]. El sistema bloquea el ingreso de cuentas nuevas emitiendo un estado 403 Forbidden en el Login hasta que el usuario confirme su correo electrónico haciendo clic en el enlace asíncrono seguro.
+2. **Perímetro de Verificación de Identidad (Email Validation):** Generación automática de tokens criptográficos aleatorios de un solo uso vinculados a la base de datos de manera única. El sistema bloquea el ingreso de cuentas nuevas emitiendo un estado 403 Forbidden en el Login hasta que el usuario confirme su correo electrónico haciendo clic en el enlace asíncrono seguro.
 3. **Control de Sesiones Inalterable:** Implementación de flujos de login protegidos que emiten tokens de acceso JWT con expiración temporal de 24 horas.
 4. **Persistencia Relacional:** Conexión estricta Uno a Muchos (Un usuario -> Múltiples tareas) protegida mediante integridad referencial y eliminación en cascada en la base de datos.
 5. **Gestión Rigurosa de Errores:** Control semántico de respuestas basado en la especificación formal de códigos de estado HTTP (200, 201, 400, 401, 404, 500).
-
 
 ## 🧪 Suites de Pruebas Automatizadas (Testing)
 
@@ -44,13 +43,15 @@ El proyecto cuenta con una robusta suite de **pruebas de integración automatiza
 
 2. **Módulo de Autenticación (`user.test.ts`):**
    - **Camino feliz:** Registro exitoso de usuarios con hash Bcrypt (Status 201).
-   - **Flujo de sesión:** Login correcto y emisión de tokens JSON Web Tokens (Status 200).
+   - **Activación perimetral:** Validación rigurosa del endpoint `verifyEmail`, cubriendo tokens obligatorios faltantes (Status 400), tokens inválidos o expirados (Status 400) y activación exitosa con mutación de estado en base de datos (Status 200).
+   - **Flujo de sesión:** Login correcto, emisión de tokens JSON Web Tokens (Status 200) y bloqueo defensivo para cuentas sin verificar (Status 403).
    - **Flujos de error controlados:** Manejo estricto de credenciales inválidas (Status 401) y campos obligatorios faltantes (Status 400).
-   - **Resiliencia del sistema:** Simulación de catástrofes internas del servidor mediante inyección de fallos con espías (`vi.spyOn`) de Vitest (Status 500).
+   - **Resiliencia del sistema:** Simulación de catástrofes internas del servidor mediante inyección de fallos con espías (`vi.spyOn`) de Vitest (Status 500) con restauración limpia mediante bloques de control.
 
 3. **Módulo de Tareas (`task.test.ts`):**
-   - **Seguridad perimetral:** Bloqueo automático ante peticiones sin token JWT (Status 401).
+   - **Seguridad perimetral:** Bloqueo automático ante peticiones sin token JWT o con formatos malformados sin el prefijo Bearer (Status 401).
    - **CRUD Relacional Dinámico:** Creación (201), lectura (200), actualización (200) y eliminación (200) de tareas enlazadas al ID del usuario autenticado, utilizando variables dinámicas en memoria para mitigar la fragilidad por secuencias de autoincremento en base de datos.
+   - **Flujos alternos de infraestructura:** Cobertura total para escenarios de recursos no encontrados (Status 404) y tolerancia a fallas internas en métodos de Prisma inyectando excepciones controladas (Status 500) restauradas de forma automática mediante ganchos `afterEach`.
 
 ### ⚙️ Ejecución de las Pruebas
 
