@@ -31,6 +31,16 @@ El proyecto implementa un patrón de diseño desacoplado y modular organizado po
 4. **Persistencia Relacional:** Conexión estricta Uno a Muchos (Un usuario -> Múltiples tareas) protegida mediante integridad referencial y eliminación en cascada en la base de datos.
 5. **Gestión Rigurosa de Errores:** Control semántico de respuestas basado en la especificación formal de códigos de estado HTTP (200, 201, 400, 401, 404, 500).
 
+## ⚙️ Configuración del Entorno Local
+
+Para levantar el servidor localmente, es obligatorio configurar las variables de entorno para la base de datos, ciberseguridad y el servicio de mensajería asíncrona:
+
+1. Clona el archivo de plantilla de entorno en la raíz del proyecto:
+   ```bash
+   cp .env.template .env
+   ```
+2. Abre el nuevo archivo `.env` y completa las credenciales del servidor SMTP (se recomienda usar **Mailtrap** para el entorno de desarrollo Sandbox).
+
 ## 🧪 Suites de Pruebas Automatizadas (Testing)
 
 El proyecto cuenta con una robusta suite de **pruebas de integración automatizadas** implementadas con **Vitest**, asegurando la integridad de los endpoints, middlewares de seguridad y la persistencia de datos relacionales sin necesidad de prender el servidor manualmente (utilizando `supertest`).
