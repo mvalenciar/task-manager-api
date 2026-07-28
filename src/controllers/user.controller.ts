@@ -3,7 +3,10 @@ import bycrypt from "bcrypt";
 import type { Request, Response } from "express";
 import Jwt from "jsonwebtoken";
 import { prisma } from "../db/client.ts";
-import { sendVerificationEmail } from "../services/emailService.ts";
+import {
+	sendResetPasswordEmail,
+	sendVerificationEmail,
+} from "../services/emailService.ts";
 
 export async function registerUser(req: Request, res: Response) {
 	try {
@@ -171,6 +174,68 @@ export async function loginUser(req: Request, res: Response) {
 		console.error("❌ Error grave en iniciar sesión:", error);
 		res.status(500).json({
 			error: "Hubo un error interno en el servidor al intentar iniciar sesión.",
+		});
+	}
+}
+
+export async function forgotPassword(req: Request, res: Response) {
+	try {
+		const { email } = req.body;
+
+		// 1. Validación de campos obligatorios
+		if (!email) {
+			return res.status(400).json({
+				error: "El correo electrónico es obligatorio.",
+			});
+		}
+
+		//2. Verificación de existencia del correo electrónico en la base de datos
+		const user = await prisma.user.findUnique({
+			where: { email },
+		});
+
+		// 3. Por seguridad de la aplicación, en caso de que el usuario no existe, se devuelve un mensaje de ok genérico
+		if (!user) {
+			return res.status(200).json({
+				message:
+					"Si el correo está registrado, recibirás un enlace de recuperación en breve.",
+			});
+		}
+
+		//4. Generación de un token de recuperación de un solo uso
+		const resetToken = crypto.randomBytes(32).toString("hex");
+
+		//5. Establecimiento del tiempo de expiración del token
+		const tokenExpiry = new Date(Date.now() + 3600000); // 1 hora
+
+		//6. Guardar los datos del token en la base de datos
+		await prisma.user.update({
+			where: {
+				id: user.id,
+			},
+			data: {
+				resetPasswordToken: resetToken,
+				resetPasswordExpires: tokenExpiry,
+			},
+		});
+
+		// 6. Despachar el correo electrónico (Mañana o en el siguiente paso crearemos el helper)
+		// Por ahora simularemos la URL de tu frontend
+		const resetUrl = `http://localhost:5173/reset-password?token=${resetToken}`;
+		console.log(`✉️ Enlace de recuperación generado para Mailtrap: ${resetUrl}`);
+
+		await sendResetPasswordEmail(email, user.alias, resetToken);
+
+		// RESPUESTA DE ÉXITO SEMÁNTICO
+		return res.status(200).json({
+			message:
+				"¡Enlace de recuperación generado con éxito! Revisa tu bandeja de entrada.",
+		});
+	} catch (error) {
+		console.error("❌ Error grave en forgotPassword:", error);
+		return res.status(500).json({
+			error:
+				"Hubo un error interno en el servidor al procesar la recuperación de contraseña.",
 		});
 	}
 }
