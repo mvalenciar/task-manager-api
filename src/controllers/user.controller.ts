@@ -239,3 +239,64 @@ export async function forgotPassword(req: Request, res: Response) {
 		});
 	}
 }
+
+export async function resetPassword(req: Request, res: Response) {
+	try {
+		const { token, password } = req.body;
+
+		//1. Validar campos obligatorios
+		if (!token || !password) {
+			return res.status(400).json({
+				error: "El token y la contraseña son obligatorios.",
+			});
+		}
+
+		//2. Verificar si el token existe en la base de datos
+		const user = await prisma.user.findFirst({
+			where: { resetPasswordToken: token },
+		});
+
+		//3. Si el token no existe, devolvemos un mensaje de error indicando un fallo en el enlace recibido
+		if (!user) {
+			return res.status(400).json({
+				error: "El enlace de recuperación es inválido o ya ha sido utilizado.",
+			});
+		}
+
+		//4. Verificar si el token ha expirado
+		if (
+			user.resetPasswordExpires &&
+			user.resetPasswordExpires.getTime() < Date.now()
+		) {
+			return res.status(400).json({
+				error:
+					"El enlace de recuperación ha expirado. Por favor, solicita uno nuevo.",
+			});
+		}
+
+		//5. Encriptación perimetral de la nueva contraseña
+		const saltRounds = 10;
+		const hashedPassword = await bycrypt.hash(password, saltRounds);
+
+		//6. Actualización de la contraseña en la base de datos
+		await prisma.user.update({
+			where: { id: user.id },
+			data: {
+				password: hashedPassword, // Inyectamos el nuevo hash
+				resetPasswordToken: null, // Destruimos la llave (un solo uso)
+				resetPasswordExpires: null, // Limpiamos el reloj de control
+			},
+		});
+
+		//7. Respuesta de éxito absoluto
+		return res.status(200).json({
+			message: "Contraseña actualizada con éxito.",
+		});
+	} catch (error) {
+		console.error("❌ Error grave en resetPassword:", error);
+		return res.status(500).json({
+			error:
+				"Hubo un error interno en el servidor al intentar cambiar la contraseña.",
+		});
+	}
+}
