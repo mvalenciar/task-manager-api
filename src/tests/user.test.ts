@@ -12,6 +12,7 @@ import {
 	spyLogin,
 	spyRegister,
 } from "./helpers/user-test.helpers.ts";
+import { sendVerificationEmail } from "../services/emailService.ts";
 
 vi.mock("../services/emailService.ts", () => ({
 	sendVerificationEmail: vi.fn().mockResolvedValue(true),
@@ -123,6 +124,30 @@ describe("🛡️ User Controller Integration Tests", () => {
 		expect(updatedUser?.verificationToken).toBeNull();
 	});
 
+	test("should return status 500 when verify email is fail", async () => {
+		const consoleSpy = spyConsoleError();
+
+		await mockResponseRegister("aliasEmail", "email@test.com", "password123");
+
+		const user = await prisma.user.findUnique({
+			where: { email: "email@test.com" },
+		});
+
+		const prismaSpy = vi
+			.spyOn(prisma.user, "update")
+			.mockRejectedValue(new Error("Error forzado en verificación de email"));
+
+		const response = await mockVerifyEmail(user?.verificationToken as string);
+
+		expect(response.status).toBe(500);
+		expect(response.body.error).toBe(
+			"Hubo un error interno en el servidor al intentar verificar el correo.",
+		);
+
+		consoleSpy.mockRestore();
+		prismaSpy.mockRestore();
+	});
+
 	// ==========================================
 	// 3. AUTENTICACIÓN (loginUser)
 	// ==========================================
@@ -229,5 +254,39 @@ describe("🛡️ User Controller Integration Tests", () => {
 
 		expect(response.status).toBe(400);
 		expect(response.body.error).toBe("El correo electrónico es obligatorio.");
+	});
+
+	test("should return 200 status when email is no correct", async () => {
+		const response = await mockResponseForgotPassword("invalidEmail");
+
+		expect(response.status).toBe(200);
+		expect(response.body.message).toBe(
+			"Si el correo está registrado, recibirás un enlace de recuperación en breve.",
+		);
+	});
+
+	test("should return status 500 when forgotten password process is fail", async () => {
+		const consoleSpy = spyConsoleError();
+		const prismaSpy = vi
+			.spyOn(prisma.user, "update")
+			.mockRejectedValue(
+				new Error("Error forzado en el proceso de recuperación de contraseña"),
+			);
+
+		const forgotPassword = await mockResponseForgotPassword(mockEmail);
+
+		const user = await prisma.user.findUnique({
+			where: {
+				email: mockEmail,
+			},
+		});
+
+		expect(forgotPassword.status).toBe(500);
+		expect(forgotPassword.body.error).toBe(
+			"Hubo un error interno en el servidor al procesar la recuperación de contraseña.",
+		);
+
+		consoleSpy.mockRestore();
+		prismaSpy.mockRestore();
 	});
 });
