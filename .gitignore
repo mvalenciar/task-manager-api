@@ -15,3 +15,6 @@ dev.db-journal
 # Carpetas de compilación o producción
 dist/
 .next/
+
+# Cobertura de pruebas (Vitest / Jest)
+coverage/

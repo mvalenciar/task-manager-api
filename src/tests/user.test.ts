@@ -99,6 +99,28 @@ describe("🛡️ User Controller Integration Tests", () => {
 		expect(response.body.error).toBe("El token es inválido o ya ha expirado.");
 	});
 
+	test("should return 200 status and activate the account when a valid verification token is provided", async () => {
+		// Buscamos al usuario que creamos en el primer test de registro
+		const user = await prisma.user.findUnique({
+			where: { email: mockEmail },
+		});
+
+		// Le disparamos el token real que Prisma guardó en SQLite de aislamiento
+		const response = await mockVerifyEmail(user?.verificationToken as string);
+
+		expect(response.status).toBe(200);
+		expect(response.body.message).toBe(
+			"¡Cuenta activada con éxito! Ya puedes iniciar sesión de forma segura.",
+		);
+
+		// Verificamos la mutación física en la BD de aislamiento
+		const updatedUser = await prisma.user.findUnique({
+			where: { email: mockEmail },
+		});
+		expect(updatedUser?.isVerified).toBe(true);
+		expect(updatedUser?.verificationToken).toBeNull();
+	});
+
 	// ==========================================
 	// 3. AUTENTICACIÓN (loginUser)
 	// ==========================================
@@ -112,14 +134,30 @@ describe("🛡️ User Controller Integration Tests", () => {
 	});
 
 	test("should return 401 status when user credentials do not exist", async () => {
-		const response = await mockResponseLogin("noexit", "password123");
+		const response = await mockResponseLogin("noExist", "password123");
 
 		expect(response.status).toBe(401);
 		expect(response.body.error).toBe("Email o contraseña incorrectos.");
 	});
 
 	test("should return 403 status when trying to login with an unverified account", async () => {
-		const response = await mockResponseLogin(mockEmail, mockPassword);
+		await mockResponseRegister(
+			"new_alias",
+			"new_email@test.com",
+			"new_password",
+		);
+
+		const user = await prisma.user.findUnique({
+			where: {
+				email: "new_email@test.com",
+			},
+		});
+		console.log(user);
+
+		const response = await mockResponseLogin(
+			"new_email@test.com",
+			"new_password",
+		);
 
 		expect(response.status).toBe(403);
 		expect(response.body.error).toBe(
