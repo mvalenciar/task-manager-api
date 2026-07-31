@@ -43,20 +43,42 @@ export async function createTask(req: Request, res: Response) {
 
 export async function getAllTasks(req: Request, res: Response) {
 	try {
+		//1. Extracción del id del usuario
 		const userId = req.userId;
 
-		const allTasks = await prisma.task.findMany({
-			where: {
-				userId: userId,
-			},
-			orderBy: {
-				createdAt: "desc",
-			},
-		});
+		//Captura de las variables que react enviara arriba en la barra de direcciones
+		// Si no se envían, ponemos por defecto Página 1 y Límite de 5 tareas
+		const page = Number(req.query.page) || 1;
+		const limit = Number(req.query.limit) || 5;
 
-		return res
-			.status(200)
-			.json({ message: "✅ Tareas obtenidas con éxito!", tasks: allTasks });
+		// 3. Calculamos matemáticamente el salto para Prisma
+		const skip = (page - 1) * limit;
+
+		//4. Ejecución concurrente de dos consultas
+		const [allTasks, totalTasks] = await Promise.all([
+			prisma.task.findMany({
+				where: { userId: userId },
+				skip: skip,
+				take: limit,
+				orderBy: { createdAt: "desc" },
+			}),
+			prisma.task.count({
+				where: { userId }, // Conteo total de tareas del usuario
+			}),
+		]);
+
+		//5. Calcular el total de páginas
+		const totalPages = Math.max(1, Math.ceil(totalTasks / limit));
+
+		return res.status(200).json({
+			tasks: allTasks,
+			meta: {
+				totalTasks,
+				totalPages,
+				currentPage: page,
+			},
+			message: "✅ Tareas obtenidas con éxito!",
+		});
 	} catch (error) {
 		console.error(error);
 		return res
