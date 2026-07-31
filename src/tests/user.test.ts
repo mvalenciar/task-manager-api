@@ -4,6 +4,7 @@ import {
 	mockAlias,
 	mockEmail,
 	mockPassword,
+	mockResponseForgotPassword,
 	mockResponseLogin,
 	mockResponseRegister,
 	mockVerifyEmail,
@@ -14,6 +15,7 @@ import {
 
 vi.mock("../services/emailService.ts", () => ({
 	sendVerificationEmail: vi.fn().mockResolvedValue(true),
+	sendResetPasswordEmail: vi.fn().mockResolvedValue(true),
 }));
 
 describe("🛡️ User Controller Integration Tests", () => {
@@ -147,13 +149,6 @@ describe("🛡️ User Controller Integration Tests", () => {
 			"new_password",
 		);
 
-		const user = await prisma.user.findUnique({
-			where: {
-				email: "new_email@test.com",
-			},
-		});
-		console.log(user);
-
 		const response = await mockResponseLogin(
 			"new_email@test.com",
 			"new_password",
@@ -204,5 +199,35 @@ describe("🛡️ User Controller Integration Tests", () => {
 			prismaSpy.mockRestore();
 			consoleSpy.mockRestore();
 		}
+	});
+
+	// ==========================================
+	// 4. RECUPERACIÓN DE CONTRASEÑA (forgotPassword & resetPassword)
+	// ==========================================
+
+	test("should return 200 and generate a reset token for an existing email", async () => {
+		const forgotPassword = await mockResponseForgotPassword(mockEmail);
+
+		const user = await prisma.user.findUnique({
+			where: {
+				email: mockEmail,
+			},
+		});
+
+		expect(forgotPassword.status).toBe(200);
+		expect(user?.resetPasswordToken).toBeDefined();
+		expect(user?.resetPasswordToken).not.toBeNull();
+		expect(user?.resetPasswordExpires).toBeDefined();
+		expect(user?.resetPasswordExpires).not.toBeNull();
+		expect(forgotPassword.body.message).toBe(
+			"¡Enlace de recuperación generado con éxito! Revisa tu bandeja de entrada.",
+		);
+	});
+
+	test("should return 400 status when no email is provided in the body", async () => {
+		const response = await mockResponseForgotPassword("");
+
+		expect(response.status).toBe(400);
+		expect(response.body.error).toBe("El correo electrónico es obligatorio.");
 	});
 });

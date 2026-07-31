@@ -64,3 +64,9 @@ export const mockResponseLogin = async (
 		password,
 	});
 };
+
+export const mockResponseForgotPassword = async (
+	email: string | null = null,
+) => {
+	return await request(app).post("/api/users/forgot-password").send({ email });
+};
