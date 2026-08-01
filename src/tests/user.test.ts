@@ -7,6 +7,7 @@ import {
 	mockResponseForgotPassword,
 	mockResponseLogin,
 	mockResponseRegister,
+	mockResponseResetPassword,
 	mockVerifyEmail,
 	spyConsoleError,
 	spyLogin,
@@ -284,6 +285,87 @@ describe("🛡️ User Controller Integration Tests", () => {
 		expect(forgotPassword.status).toBe(500);
 		expect(forgotPassword.body.error).toBe(
 			"Hubo un error interno en el servidor al procesar la recuperación de contraseña.",
+		);
+
+		consoleSpy.mockRestore();
+		prismaSpy.mockRestore();
+	});
+
+	// ==========================================
+	// 5. RESTABLECIMIENTO FINAL (resetPassword)
+	// ==========================================
+
+	test("should return 400 when token or password are missing in resetPassword", async () => {
+		const response = await mockResponseResetPassword("", "newPassword123");
+		expect(response.status).toBe(400);
+		expect(response.body.error).toBe(
+			"El token y la contraseña son obligatorios.",
+		);
+	});
+
+	test("should return 400 when the reset token does not exist in the database", async () => {
+		const response = await mockResponseResetPassword(
+			"token_falso_inexistente",
+			"newPassword123",
+		);
+		expect(response.status).toBe(400);
+		expect(response.body.error).toBe(
+			"El enlace de recuperación es inválido o ya ha sido utilizado.",
+		);
+	});
+
+	test("should return 200, successfully update the password, and destroy the recovery keys", async () => {
+		const userBefore = await prisma.user.findUnique({
+			where: { email: mockEmail },
+		});
+
+		const response = await mockResponseResetPassword(
+			userBefore?.resetPasswordToken as string,
+			"okinawaNuevaClave2026",
+		);
+
+		expect(response.status).toBe(200);
+		expect(response.body.message).toBe("Contraseña actualizada con éxito.");
+
+		const userAfter = await prisma.user.findUnique({
+			where: { email: mockEmail },
+		});
+		expect(userAfter?.resetPasswordToken).toBeNull();
+		expect(userAfter?.resetPasswordExpires).toBeNull();
+
+		expect(userAfter?.password).not.toBe(mockPassword);
+	});
+
+	test("should return 500 status when database update fails during password reset", async () => {
+		const tempUser = await prisma.user.create({
+			data: {
+				alias: "user_fail_reset_500",
+				email: "fail_reset500@test.com",
+				password: "password_viejo_123",
+				resetPasswordToken: "token_fresco_exclusivo_para_error_500",
+				resetPasswordExpires: new Date(Date.now() + 3600000), // Válido por 1 hora
+			},
+		});
+
+		const consoleSpy = spyConsoleError();
+
+		// 2. El candado: Obligamos al método 'update' de Prisma a colapsar
+		const prismaSpy = vi
+			.spyOn(prisma.user, "update")
+			.mockRejectedValue(
+				new Error("Catástrofe forzada en SQLite para resetPassword"),
+			);
+
+		// 3. Disparamos la petición usando el token REAL de nuestro usuario fresco
+		const response = await mockResponseResetPassword(
+			tempUser.resetPasswordToken as string,
+			"nueva_password_123",
+		);
+
+		// 4. Como el token existe y es válido, pasará la aduana, tocará el update y saltará al catch (500)
+		expect(response.status).toBe(500);
+		expect(response.body.error).toBe(
+			"Hubo un error interno en el servidor al intentar cambiar la contraseña.",
 		);
 
 		consoleSpy.mockRestore();

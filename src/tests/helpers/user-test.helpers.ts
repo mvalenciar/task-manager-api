@@ -70,3 +70,12 @@ export const mockResponseForgotPassword = async (
 ) => {
 	return await request(app).post("/api/users/forgot-password").send({ email });
 };
+
+export const mockResponseResetPassword = async (
+	token: string | null,
+	password: string | null,
+) => {
+	return await request(app)
+		.post("/api/users/reset-password")
+		.send({ token, password });
+};
