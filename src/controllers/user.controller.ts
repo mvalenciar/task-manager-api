@@ -27,9 +27,33 @@ export async function registerUser(req: Request, res: Response) {
 		});
 
 		if (existing_user) {
-			return res
-				.status(400)
-				.json({ error: "Este alias y correo electrónico ya está registrado." });
+			//Si el usuario ya está registrado y verificado
+			if (existing_user.isVerified) {
+				return res.status(400).json({
+					error: "Este alias o correo electrónico ya está registrado y activo.",
+				});
+			}
+
+			//Si el usuario no está verificado
+			const newVerificationToken = crypto.randomBytes(32).toString("hex");
+			const hashedPassword = await bycrypt.hash(password, 10); //Se actualiza la clave por si la hubiera cambiado
+
+			await prisma.user.update({
+				where: {
+					id: existing_user.id,
+				},
+				data: {
+					password: hashedPassword,
+					verificationToken: newVerificationToken,
+				},
+			});
+
+			await sendVerificationEmail(email, alias, newVerificationToken);
+
+			return res.status(200).json({
+				message:
+					"Tu cuenta estaba pendiente de activación. Hemos reenviado un nuevo enlace a tu bandeja de entrada.",
+			});
 		}
 
 		// 2.1 Encriptación  de la contraseña
