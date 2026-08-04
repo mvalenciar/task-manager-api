@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import { initCleanupCron } from "./services/cleanupService.ts";
 import "dotenv/config";
 import process from "node:process";
 
@@ -35,6 +36,9 @@ app.use("/api/tasks", taskRouter);
 app.use((_, res) => {
 	res.status(404).json({ status: "error", message: "Route not found" });
 });
+
+// Iniciar el servicio de limpieza de cuentas huérfanas
+initCleanupCron();
 
 // Iniciar el servidor
 app.listen(PORT, () => {
