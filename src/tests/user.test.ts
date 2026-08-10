@@ -13,7 +13,6 @@ import {
 	spyLogin,
 	spyRegister,
 } from "./helpers/user-test.helpers.ts";
-import { sendVerificationEmail } from "../services/emailService.ts";
 
 vi.mock("../services/emailService.ts", () => ({
 	sendVerificationEmail: vi.fn().mockResolvedValue(true),
@@ -44,16 +43,16 @@ describe("🛡️ User Controller Integration Tests", () => {
 		expect(response.body.user.password).toBe(undefined);
 	});
 
-	test("should return 400 status when trying to register an existing email or alias", async () => {
+	test("should return 200 status and re-dispatch verification token when trying to register an unverified existing email or alias", async () => {
 		const response = await mockResponseRegister(
 			mockAlias,
 			mockEmail,
 			mockPassword,
 		);
 
-		expect(response.status).toBe(400);
-		expect(response.body.error).toBe(
-			"Este alias y correo electrónico ya está registrado.",
+		expect(response.status).toBe(200);
+		expect(response.body.message).toBe(
+			"Tu cuenta estaba pendiente de activación. Hemos reenviado un nuevo enlace a tu bandeja de entrada.",
 		);
 	});
 
