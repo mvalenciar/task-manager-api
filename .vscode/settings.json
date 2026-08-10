@@ -10,10 +10,12 @@
 		"datasource",
 		"Encriptación",
 		"Inicialización",
+		"Instanciamos",
 		"mailtrap",
 		"malformados",
 		"Manejador",
 		"sqlite",
-		"tipado"
+		"tipado",
+		"Vitest"
 	]
 }

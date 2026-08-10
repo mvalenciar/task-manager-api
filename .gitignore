@@ -2,6 +2,9 @@
 node_modules
 .pnpm-store/
 
+#Vscode Settings
+.vscode
+
 # variables de entorno
 .env
 .env.local

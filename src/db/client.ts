@@ -2,7 +2,7 @@ import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import "dotenv/config";
 import process from "node:process";
 
-import { PrismaClient } from "../../generated/prisma/client.ts";
+import { PrismaClient } from "../../generated/prisma/client.js";
 
 // Configuración de la conexión a la base de datos
 const connectionString =
