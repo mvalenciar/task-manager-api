@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { prisma } from "../db/client.ts";
+import { prisma } from "../db/client.js";
 
 export function initCleanupCron() {
 	// 🎯 Ejecución estricta todos los días a la medianoche (00:00 AM)

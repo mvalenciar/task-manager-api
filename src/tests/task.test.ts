@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
-import { prisma } from "../db/client.ts";
+import { prisma } from "../db/client.js";
 import {
 	mockResponseCreateTask,
 	mockResponseDeleteTask,
@@ -8,9 +8,9 @@ import {
 	mockSpyConsoleError,
 	mockTask,
 	setupTaskTests,
-} from "./helpers/task-test.helpers.ts";
+} from "./helpers/task-test.helpers.js";
 
-vi.mock("../services/emailService.ts", () => ({
+vi.mock("../services/emailService.js", () => ({
 	sendVerificationEmail: vi.fn().mockResolvedValue(true),
 }));
 

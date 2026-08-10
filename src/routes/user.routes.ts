@@ -5,7 +5,7 @@ import {
 	registerUser,
 	resetPassword,
 	verifyEmail,
-} from "../controllers/user.controller.ts";
+} from "../controllers/user.controller.js";
 
 export const userRouter = Router();
 

@@ -1,15 +1,15 @@
 import cors from "cors";
 import express from "express";
-import { initCleanupCron } from "./services/cleanupService.ts";
+import { initCleanupCron } from "./services/cleanupService.js";
 import "dotenv/config";
 import process from "node:process";
 
 // Activar la conexión con Prisma
-import "./db/client.ts";
+import "./db/client.js";
 
 //Rutas
-import { taskRouter } from "./routes/task.routes.ts";
-import { userRouter } from "./routes/user.routes.ts";
+import { taskRouter } from "./routes/task.routes.js";
+import { userRouter } from "./routes/user.routes.js";
 
 export const app = express();
 // Se usara por defecto el puerto 4000 o el que se especifique en el archivo .env

@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import request from "supertest";
 import { describe, test } from "vitest"; // 👈 🔄 Cambiado de "node:test" a "vitest"
-import { app } from "../index.ts";
+import { app } from "../index.js";
 
 describe("🛡️ Pruebas del Módulo de Salud (Health)", () => {
 	test("It should return status 200 and the server live message", async () => {

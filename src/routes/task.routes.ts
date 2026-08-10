@@ -5,8 +5,8 @@ import {
 	deleteTask,
 	getAllTasks,
 	updateTask,
-} from "../controllers/task.controller.ts";
-import { requireAuthentication } from "../middlewares/auth.middleware.ts";
+} from "../controllers/task.controller.js";
+import { requireAuthentication } from "../middlewares/auth.middleware.js";
 
 export const taskRouter = Router();
 

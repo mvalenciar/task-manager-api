@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { prisma } from "../db/client.ts";
+import { prisma } from "../db/client.js";
 
 export async function createTask(req: Request, res: Response) {
 	try {

@@ -2,11 +2,11 @@ import crypto from "node:crypto";
 import bycrypt from "bcrypt";
 import type { Request, Response } from "express";
 import Jwt from "jsonwebtoken";
-import { prisma } from "../db/client.ts";
+import { prisma } from "../db/client.js";
 import {
 	sendResetPasswordEmail,
 	sendVerificationEmail,
-} from "../services/emailService.ts";
+} from "../services/emailService.js";
 
 export async function registerUser(req: Request, res: Response) {
 	try {
