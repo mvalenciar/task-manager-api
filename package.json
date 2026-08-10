@@ -1,8 +1,9 @@
 {
 	"name": "task-manager-api",
 	"version": "1.0.0",
+	"type": "module",
 	"description": "",
-	"main": "index.js",
+	"main": "dist/index.js",
 	"scripts": {
 		"dev": "tsx watch src/index.ts",
 		"build": "pnpm prisma generate && tsc",
@@ -20,7 +21,6 @@
 			"onFail": "download"
 		}
 	},
-	"type": "module",
 	"dependencies": {
 		"@prisma/adapter-better-sqlite3": "^7.8.0",
 		"@prisma/client": "^7.8.0",
