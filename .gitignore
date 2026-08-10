@@ -12,6 +12,10 @@ node_modules
 dev.db
 dev.db-journal
 
+#BASES DE DATOS DE PRUEBAS
+test.db
+test.db-journal
+
 # Carpetas de compilación o producción
 dist/
 .next/
