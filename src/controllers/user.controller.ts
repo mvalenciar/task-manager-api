@@ -206,6 +206,15 @@ export async function forgotPassword(req: Request, res: Response) {
 	try {
 		const { email } = req.body;
 
+		// 🛡️ ESCUDO PERIMETRAL: Bloquear solicitudes para la cuenta demo
+		if (email.toLowerCase() === "demo@taskmanager.com") {
+			return res.status(200).json({
+				status: "success",
+				message:
+					"✨ [MODO DEMO] El enlace de recuperación ha sido enviado de forma simulada. (Las credenciales de la cuenta de invitado están protegidas y no pueden ser alteradas).",
+			});
+		}
+
 		// 1. Validación de campos obligatorios
 		if (!email) {
 			return res.status(400).json({
@@ -284,6 +293,14 @@ export async function resetPassword(req: Request, res: Response) {
 		if (!user) {
 			return res.status(400).json({
 				error: "El enlace de recuperación es inválido o ya ha sido utilizado.",
+			});
+		}
+
+		// 🛡️ CAPA DE SEGURIDAD EXTRA: Evitar que alteren la contraseña de la demo si se filtra un token viejo
+		if (user.email.toLowerCase() === "demo@taskmanager.com") {
+			return res.status(400).json({
+				error:
+					"No está permitido cambiar la contraseña de la cuenta de demostración por seguridad pública.",
 			});
 		}
 
